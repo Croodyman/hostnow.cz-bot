@@ -1,0 +1,78 @@
+const { Client, GatewayIntentBits } = require('discord.js');
+
+const TOKEN =
+
+// ID na channels:
+const PRIME_CHANNEL_ID = '1362899428536615153';
+const FIBONACCI_CHANNEL_ID = '1365758921066807467';
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
+
+client.once('ready', () => {
+    console.log(`✅ Přihlášen jako ${client.user.tag}`);
+});
+
+// ---- Funkce - Prime ----
+function isPrime(num) {
+    if (num < 2) return false;
+    for (let i = 2; i <= Math.sqrt(num); i++) {
+        if (num % i === 0) return false;
+    }
+    return true;
+}
+
+function nextPrime(num) {
+    let next = num + 1;
+    while (!isPrime(next)) {
+        next++;
+    }
+    return next;
+}
+
+// ---- Funkce - Fibonacci ----
+function generateFibonacciUpTo(max) {
+    const fib = [0, 1];
+    while (fib[fib.length - 1] < max) {
+        fib.push(fib[fib.length - 1] + fib[fib.length - 2]);
+    }
+    return fib;
+}
+
+client.on('messageCreate', message => {
+    if (message.author.bot) return; 
+
+    const content = message.content.trim();
+
+    if (/^\d+$/.test(content)) { // Kontroluje postupnost
+        const number = parseInt(content);
+
+        if (message.channel.id === PRIME_CHANNEL_ID) {
+            // PRIME
+            if (isPrime(number)) {
+                const next = nextPrime(number);
+                message.channel.send(`${next}`);
+            }
+        } else if (message.channel.id === FIBONACCI_CHANNEL_ID) {
+            // FIBONACCI
+            const fib = generateFibonacciUpTo(number);
+            if (fib.includes(number)) {
+                const nextIndex = fib.indexOf(number) + 1;
+                if (nextIndex < fib.length) {
+                    message.channel.send(`${fib[nextIndex]}`);
+                } else {
+                    const next = number + fib[fib.length - 2];
+                    message.channel.send(`${next}`);
+                }
+            }
+        } 
+        
+    }
+});
+
+client.login(TOKEN);
